@@ -1,0 +1,134 @@
+---
+title: "Reduction de dimension avec l'Analyse en Composante Principal"
+author: "BADJO Dibé"
+format: pdf
+editor: visual
+---
+
+# Exploration de données
+
+```{r}
+library(tidyverse)
+library(FactoMineR)
+library(factoextra)
+```
+
+```{r echo = FALSE}
+data <- read_csv("../analyseData/pca.txt")
+```
+
+```{r}
+head(data)
+```
+
+```{r esults = FALSE}
+x <- data[1:7,-1]
+```
+
+```{r}
+summar <- summary(x)
+view(summar)
+```
+
+```{r}
+boxplot(x)
+```
+
+```{r}
+matCors <- cor(x)
+view(matCors)
+```
+
+```{r}
+Xsc <- scale(x, scale = T)
+```
+
+```{r}
+boxplot(Xsc)
+```
+
+Pour parvenir a trouver les composantes principale, il faut tous d'abord calculer la matrix transpose(X)\*X
+
+```{r}
+sigma <- t(Xsc) %*% Xsc/nrow(Xsc)
+view(sigma)
+```
+
+Utilisons cette matrix pour calculer ensuite les valeurs propres et les vecteurs propres
+
+```{r}
+ACP <- eigen(sigma)
+```
+
+```{r}
+class(ACP)
+```
+
+Les valeurs propres
+
+```{r}
+values <- ACP$values
+values
+```
+
+Les vecteurs propres
+
+```{r}
+vec <- ACP$vectors
+```
+
+```{r}
+view(vec)
+```
+
+Pour savoir le nombre de vecteur propre a selection il faut tracer le graph suivant, appellé le graph de coude, dans les resultats, le nombre de composante principale a sélectionner est 2
+
+```{r}
+inertie <- cumsum(values)/sum(values)
+inertie
+```
+
+Une autre manière de le savoir est de voir combien de vecteur propre garde plus de 80% de l'information, dans les resulats, les deux premiers vecteur propres garde plus de 80% de l'information ce qui vient confirmé le nombre qu'on a selectionner qui est 2
+
+```{r}
+pourcinertie <- inertie*100
+pourcinertie
+```
+
+Plus de 80% de la variance sont expliquer par les 2 premiers composant principales, ce qui nous conduit a garder que ces deux composantes.
+
+Dans le pourcentage expliquer par ces deux composant, le premier composant á lui seul explique approximativement 68% de la variance
+
+```{r}
+
+plot(vec[, 1:2], pch = 2, cex = values)
+text(vec[, 1:2], labels = rownames(vec), pos = 3)
+```
+
+```{r}
+res.acp<-PCA(x, graph = FALSE)
+```
+
+```{r}
+view(res.acp$var$cos2)
+```
+
+```{r}
+get_eigenvalue(res.acp)
+```
+
+```{r}
+fviz_eig(res.acp)
+```
+
+```{r}
+fviz_pca_ind(res.acp)
+```
+
+```{r}
+ fviz_pca_var(res.acp)
+```
+
+```{r}
+fviz_pca_biplot(res.acp)
+```

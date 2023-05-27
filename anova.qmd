@@ -1,0 +1,171 @@
+---
+title: "anova"
+format: pdf
+editor: visual
+---
+
+```{r}
+library(tidyverse)
+```
+
+```{r}
+score_qi <- read_csv("../analyseData/qianova.csv")
+```
+
+```{r}
+names(score_qi) <- c("groupe", "qi")
+score_qi
+```
+
+```{r}
+library(rstatix)
+data_ <- tibble(score = score_qi$qi, groupe = factor(score_qi$groupe))
+levels(data_$groupe)
+```
+
+```{r}
+data_ %>% group_by(groupe) %>% get_summary_stats(score, type = "mean_sd")
+```
+
+```{r}
+library(ggpubr)
+```
+
+```{r}
+ggboxplot(data_, x = "groupe", y = "score")
+```
+
+```{r}
+plot(score ~groupe, data=data_)
+```
+
+```{r}
+data_ %>% group_by(groupe) %>% identify_outliers(score)
+```
+
+```{r}
+data_ %>% group_by(groupe) %>% shapiro_test(score) 
+ggqqplot(data_, "score", facet.by = "groupe")
+```
+
+```{r}
+bartlett.test(data_$score ~data_$groupe)
+data_ %>% levene_test(score ~ groupe)
+```
+
+```{r}
+rs.aov<-Anova(lm(score~groupe, data=data_))
+rs.aov
+```
+
+```{r}
+anova_summary(rs.aov)
+```
+
+```{r}
+rs.aov <- aov(score ~ groupe, data_ )
+```
+
+```{r}
+summary(rs.aov)
+```
+
+```{r}
+rs.aov <- data_ %>% anova_test(score ~ groupe)
+rs.aov
+```
+
+```{r}
+rs.aovw <- data_ %>% welch_anova_test(score ~groupe)
+rs.aovw
+```
+
+```{r}
+rs.tk <- data_ %>% tukey_hsd(score ~ groupe)
+rs.tk
+```
+
+```{r}
+rs.tk2 <- rs.tk %>% add_xy_position(x = "groupe")
+```
+
+```{r}
+ggboxplot(data_, x = "groupe", y = "score") + stat_pvalue_manual(rs.tk2, hide.ns = TRUE) + labs( subtitle = get_test_label(rs.aov, detailed = TRUE),caption = get_pwc_label(rs.tk2))
+```
+
+```{r}
+mdl <- lm(score ~ groupe, data= data_)
+```
+
+```{r}
+ggqqplot(residuals(mdl))
+```
+
+```{r}
+shapiro_test(residuals(mdl))
+```
+
+```{r}
+rs.krl <- data_ %>% kruskal_test(score ~ groupe)
+```
+
+```{r}
+rs.krl
+```
+
+```{r}
+rs.dnt <- data_ %>% dunn_test(score ~ groupe, p.adjust.method = "bonferroni") 
+rs.dnt
+```
+
+```{r}
+rs.dnt2 <- rs.dnt %>% add_xy_position(x = "groupe")
+ggboxplot(data_, x = "groupe", y = "score") + stat_pvalue_manual(rs.dnt2, hide.ns = TRUE) + labs( subtitle = get_test_label(rs.krl, detailed = TRUE),caption = get_pwc_label(rs.dnt2))
+
+```
+
+```{r}
+rs.wxt <- data_ %>% wilcox_test(score ~ groupe, p.adjust.method = "bonferroni") 
+rs.wxt
+```
+
+```{r}
+rs.wxt2 <- rs.wxt %>% add_xy_position(x = "groupe")
+ggboxplot(data_, x = "groupe", y = "score") + stat_pvalue_manual(rs.wxt2, hide.ns = TRUE) + labs( subtitle = get_test_label(rs.krl, detailed = TRUE),caption = get_pwc_label(rs.wxt2))
+```
+
+```{r}
+rs.ght <- data_ %>% games_howell_test(score ~groupe)
+rs.ght
+```
+
+```{r}
+rs.ght2 <- rs.ght %>% add_xy_position(x = "groupe")
+ggboxplot(data_, x = "groupe", y = "score") + stat_pvalue_manual(rs.ght2, hide.ns = TRUE) + labs( subtitle = get_test_label(rs.aovw, detailed = TRUE),caption = get_pwc_label(rs.ght2))
+```
+
+```{r}
+rs.tt <- data_ %>% pairwise_t_test(score ~ groupe, pool.sd = FALSE, p.adjust.method = "bonferroni")
+rs.tt
+```
+
+```{r}
+rs.tt2 <- rs.ght %>% add_xy_position(x = "groupe")
+ggboxplot(data_, x = "groupe", y = "score") + stat_pvalue_manual(rs.tt2, hide.ns = TRUE) + labs( subtitle = get_test_label(rs.aovw, detailed = TRUE),caption = get_pwc_label(rs.tt2))
+```
+
+```{r}
+
+```
+
+```{r}
+
+```
+
+```{r}
+
+```
+
+```{r}
+
+```

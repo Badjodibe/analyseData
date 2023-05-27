@@ -1,0 +1,117 @@
+---
+title: "Regression linéaire"
+format: pdf
+editor: visual
+---
+
+# Introduction
+
+Ce document est une application du modèle de regression linéaire sur deux variable constitué aléatoirement. X est un ensemble de nombre de 1 jusqu'a 12 et y est constitué d'un ensemble de chiffre. Le but est d'établir un modèle de regression linéaire entre ces deux variable.
+
+### Les données utilisées
+
+```{r}
+library("tidyverse")
+library("car")
+library("corrplot")
+```
+
+```{r}
+xi <- c(1:12)
+yi <- c(40, 42, 44, 45, 48, 50, 52, 55, 58, 63, 68, 70)
+```
+
+```{r}
+plot(xi, yi)
+```
+
+En se référant á nuage de point, le relation entre x et y semble linéraire, on ne peux se baser sur de simple graphe pour affirmé cela, calculons le coéficient de corrélation.
+
+```{r}
+r<-cor(xi,yi)
+```
+
+ce dernier est de 0.98, le coéfficient de corrélation est une mésure que associe une valeur a la corrélation linéaire qui existe entre deux variable. notre valeur est proche de 1, sans doute qu'il y a une forte corrélation entre ces deux variable en se basant toujours sur l'échatillons collectés. Vous être plus confiant de cette valeur, fesons un test sur cette valeur
+
+```{r}
+cor.test(xi,yi)
+```
+
+On fait un test sous l'hypothèse que la corrélation est nulle, le résultat du test donne une valeur p qui est très faible ce qui revient a dire qu'on commettra une erreur en rejétant l'hypothèse nulle qui est que la corrélation entre ces deux variable est différent de zero. En ajout, on est 95% confiant que la valeur réelle du corrélation se trouve entre 0.94 et 0.99.
+
+```{r echo = FALSE}
+matrix <- data_frame(xi, yi)
+```
+
+effectuons tous d'abord un test pour savoir si les données, je veux dire les variables x et y proviennent d'une distribution normal. Pour cela on va effectuer deux test, le test de Kolmogorom smirnov et celui de shapiro.
+
+```{r}
+ks.test(yi,"pnorm")
+```
+
+```{r}
+ks.test(xi,"pnorm")
+```
+
+```{r}
+shapiro.test(xi)
+```
+
+```{r}
+shapiro.test(yi)
+
+```
+
+# Modèle de regression linéaire
+
+Concevons le modèle de regression linéaire. Pour cela on va utiliser la fonction lm offerte par r en donnant la variable dependante yi et la variable indépendante xi. Un résumé du modèle nous fournis les détails suivant:
+
+```{r}
+ regxy <- lm(yi ~ xi)
+```
+
+```{r}
+summary(regxy)
+```
+
+Commencons par les résidues du modèle. ces résidues se rangent entre l'intervale de -2.2890 et 2.7319 avec un médian de -0.1614. ces resultat montrent qu'il y a pas une grande variance entre les résidues. En ajout, la valeur p des paramètre du modèle sont très faible, une est de 3.70e-11 et l'autre 8.35e-09 ce qui nous conduit a ne pas rejeter les estimations du modèle. Pour aller plus loin etudions les résidues du modèles, afin de valider le modèle.
+
+### Autocarelation
+
+L'autocorrelation est le calcule de cal covariance croiser d'une variable. étant données que les résidues de l'estimation son basé sur un échantillons, ces dernier varient d'un échantillons a un autre. On va alors supposer que chaque résidue est une variable aléatoire dépendant du temps, comme ca on calcule la covariance des résidues dans le temps. Ici est le l'affichage du résultat avec la fonction autocorrelation fonction.
+
+```{r}
+acf(residuals(regxy), main="reg xy")
+```
+
+Ceci est un test d'autocorrelation qui á été proposé par **Durbin-Watson**. Ce test permet de déterminer si les résidue d'une regression linéaire son corrélé ou pas? L'hypothèse null est qu'il y a pas de autocorrélation et la D-W statistique est la statistique utilisé pour faire le test. ssi on prend 0.05 et 0.09 comme seuil de tolérance de notre test, en théorie l'hypothèse null est validé ca le D-W test est dans l'intervale de 0.09 et 4-0.09. Les résidues ne sont pas corrélés.
+
+```{r}
+durbinWatsonTest (regxy)
+```
+
+Une autre manière de validé le modèle est de test la normalité des rèsidues. si les résidues sont normale, les modèles sera alors validé. Il y a plusieurs manière d'effectué le test de normalité sur un variable, dans ce cadre nous allons utilisé le shapiro.test. Tous d'abord le QQ plot nous indique avec une tolérance la normalité du résidue. Si on se réfère au test de shapiro avec une tolérance de 0.05, la valeur p est supérieur a cette valeur alpha, ce serait un erreur de rejeter l'hypthèse nulle.
+
+```{r}
+plot(regxy,2)
+```
+
+```{r}
+shapiro.test(residuals(regxy))
+```
+
+```{r}
+plot(regxy, 3)
+```
+
+```{r}
+ncvTest(regxy)
+```
+
+```{r}
+plot(regxy,1)
+```
+
+```{r}
+confint(regxy)
+```
